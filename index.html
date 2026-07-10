@@ -756,10 +756,13 @@ function wireSlide(el){
 /* ---- hist: undo / redo ---- */
 var hist=[],hpos=-1,pushT=null;
 function serialize(){return JSON.stringify({format:format,cur:cur,slides:slides.map(function(s){return{type:s.type,bg:s.el.dataset.bg,f916:s.el.classList.contains('f916'),html:s.el.innerHTML};})});}
-var DECK_KEY='deck_'+location.pathname;var _saveT=null;
-function saveDeck(){try{localStorage.setItem(DECK_KEY,serialize());}catch(e){}}
+var DECK_KEY='deck_'+location.pathname;var _saveT=null,_idbP=null;
+function idbReady(){if(_idbP)return _idbP;_idbP=new Promise(function(res,rej){try{var r=indexedDB.open('appDB',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('kv');};r.onsuccess=function(e){res(e.target.result);};r.onerror=function(){rej(r.error);};}catch(e){rej(e);}});return _idbP;}
+function idbPut(k,v){return idbReady().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});}
+function idbGet(k){return idbReady().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readonly');var q=t.objectStore('kv').get(k);q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});});}
+function saveDeck(){try{idbPut(DECK_KEY,serialize())['catch'](function(){});}catch(e){}}
 function saveDeckSoon(){if(_saveT)clearTimeout(_saveT);_saveT=setTimeout(saveDeck,400);}
-function loadDeck(){try{var v=localStorage.getItem(DECK_KEY);if(v){restoreState(v);return true;}}catch(e){}return false;}
+function loadDeck(){return idbGet(DECK_KEY).then(function(v){if(v){restoreState(v);return true;}return false;})['catch'](function(){return false;});}
 var _phTimer=null;
 function _flushHistory(){if(_phTimer){clearTimeout(_phTimer);_phTimer=null;_pushHistoryNow();}}
 function pushHistory(){if(_phTimer)clearTimeout(_phTimer);_phTimer=setTimeout(function(){_phTimer=null;_pushHistoryNow();},220);}
@@ -988,9 +991,10 @@ document.getElementById('exp-all').addEventListener('click',function(){
 
 /* ---- start ---- */
 /* ---- feed grid planner ---- */
-var feed=new Array(12).fill(null);
-try{var _sv=JSON.parse(localStorage.getItem('seal_feed')||'null');if(_sv&&_sv.length){feed=_sv;while(feed.length<12)feed.push(null);feed=feed.slice(0,12);}}catch(e){}
-function saveFeed(){try{localStorage.setItem('seal_feed',JSON.stringify(feed));}catch(e){}}
+var feed=new Array(12).fill(null);var FEED_KEY='feed_'+location.pathname;
+function saveFeed(){try{idbPut(FEED_KEY,JSON.stringify(feed))['catch'](function(){});}catch(e){}}
+function loadFeed(){return idbGet(FEED_KEY).then(function(v){try{var a=JSON.parse(v||'null');if(a&&a.length){feed=a;while(feed.length<12)feed.push(null);feed=feed.slice(0,12);}}catch(e){}if(typeof renderGrid==='function')renderGrid();})['catch'](function(){});}
+loadFeed();
 function renderGrid(){
   var g=document.getElementById('grid12');if(!g)return;g.innerHTML='';
   for(var i=0;i<12;i++){
@@ -1134,13 +1138,13 @@ function applyBrand(id){
   var li=document.getElementById('logoInner'); if(li)li.innerHTML=b.logo;
   DECK_KEY='deck_'+location.pathname+'_'+id;                            /* у каждой зоны свой проект */
   window.__brand=id; try{localStorage.setItem('studioBrand',id);}catch(_){}
-  if(!loadDeck()){seedDefault();}                                       /* нет сохранённого — стартовый проект */
+  loadDeck().then(function(_ok){if(!_ok)seedDefault();               /* нет сохранённого — стартовый проект */
   hist=[];hpos=-1;
   if(typeof buildSwatches==='function')buildSwatches();
   if(window.__buildTC)window.__buildTC();
   if(typeof slides!=='undefined')slides.forEach(function(s){if(typeof applyBg==='function')applyBg(s);});
   if(typeof render==='function')render();
-  pushHistory();
+  pushHistory();});
 }
 document.querySelectorAll('#brandmenu button[data-brand]').forEach(function(bn){bn.addEventListener('click',function(e){e.stopPropagation();applyBrand(bn.dataset.brand);var m=document.getElementById('brandmenu');if(m)m.classList.remove('open');});});
 
