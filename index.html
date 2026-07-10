@@ -756,13 +756,13 @@ function wireSlide(el){
 /* ---- hist: undo / redo ---- */
 var hist=[],hpos=-1,pushT=null;
 function serialize(){return JSON.stringify({format:format,cur:cur,slides:slides.map(function(s){return{type:s.type,bg:s.el.dataset.bg,f916:s.el.classList.contains('f916'),html:s.el.innerHTML};})});}
-var DECK_KEY='deck_'+location.pathname;var _saveT=null,_idbP=null;
+var DECK_KEY='deck_'+location.pathname;var _saveT=null,_idbP=null,_dirty=false;
 function idbReady(){if(_idbP)return _idbP;_idbP=new Promise(function(res,rej){try{var r=indexedDB.open('appDB',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('kv');};r.onsuccess=function(e){res(e.target.result);};r.onerror=function(){rej(r.error);};}catch(e){rej(e);}});return _idbP;}
 function idbPut(k,v){return idbReady().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});}
 function idbGet(k){return idbReady().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readonly');var q=t.objectStore('kv').get(k);q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});});}
-function saveDeck(){try{idbPut(DECK_KEY,serialize())['catch'](function(){});}catch(e){}}
-function saveDeckSoon(){if(_saveT)clearTimeout(_saveT);_saveT=setTimeout(saveDeck,400);}
-function loadDeck(){return idbGet(DECK_KEY).then(function(v){if(v){restoreState(v);return true;}return false;})['catch'](function(){return false;});}
+function saveDeck(){_dirty=false;try{idbPut(DECK_KEY,serialize())['catch'](function(){});}catch(e){}}
+function saveDeckSoon(){_dirty=true;if(_saveT)clearTimeout(_saveT);_saveT=setTimeout(saveDeck,400);}
+function loadDeck(){return idbGet(DECK_KEY).then(function(v){if(v){window.__snap=v;restoreState(v);return true;}return false;})['catch'](function(){return false;});}
 var _phTimer=null;
 function _flushHistory(){if(_phTimer){clearTimeout(_phTimer);_phTimer=null;_pushHistoryNow();}}
 function pushHistory(){if(_phTimer)clearTimeout(_phTimer);_phTimer=setTimeout(function(){_phTimer=null;_pushHistoryNow();},220);}
@@ -1127,7 +1127,7 @@ function studioToast(msg){var t=document.getElementById('__toast');if(!t){t=docu
 function seedDefault(){slides=[];var h=document.getElementById('host');if(h)h.innerHTML='';addSlide('cover');addSlide('quote');addSlide('collage');cur=0;render();}
 function applyBrand(id){
   var b=BRANDS[id]; if(!b)return;
-  if(window.__brand&&window.__brand!==id){try{saveDeck();}catch(_){}}   /* мгновенно сохраняем текущую зону перед сменой */
+  if(window.__brand&&window.__brand!==id&&_dirty){try{saveDeck();}catch(_){}}   /* сохраняем текущую зону перед сменой — только если были правки */
   if(_saveT){clearTimeout(_saveT);_saveT=null;}
   var r=document.documentElement.style;
   r.setProperty('--serif',b.serif);r.setProperty('--sans',b.sans);
@@ -1138,10 +1138,9 @@ function applyBrand(id){
   var li=document.getElementById('logoInner'); if(li)li.innerHTML=b.logo;
   DECK_KEY='deck_'+location.pathname+'_'+id;                            /* у каждой зоны свой проект */
   window.__brand=id; try{localStorage.setItem('studioBrand',id);}catch(_){}
-  loadDeck().then(function(_ok){if(!_ok)seedDefault();               /* нет сохранённого — стартовый проект */
-  hist=[];hpos=-1;
-  if(window.__buildTC)window.__buildTC();                            /* палитра текста; фон/свотчи/рендер уже сделал restoreState/seedDefault */
-  pushHistory();});
+  loadDeck().then(function(_ok){var _snap;if(!_ok){seedDefault();_snap=serialize();}else{_snap=window.__snap;}  /* историю заводим из уже загруженной строки — без лишней сериализации */
+  hist=[_snap];hpos=0;_dirty=false;if(typeof updateUndoUI==='function')updateUndoUI();
+  if(window.__buildTC)window.__buildTC();});                         /* палитра текста; фон/свотчи/рендер уже сделал restoreState/seedDefault */
 }
 document.querySelectorAll('#brandmenu button[data-brand]').forEach(function(bn){bn.addEventListener('click',function(e){e.stopPropagation();applyBrand(bn.dataset.brand);var m=document.getElementById('brandmenu');if(m)m.classList.remove('open');});});
 
