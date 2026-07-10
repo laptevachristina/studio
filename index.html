@@ -181,6 +181,8 @@ header .logo b{color:var(--ui-acc);font-weight:700}
 .snap-guide{position:absolute;background:var(--ui-acc,#E45D50);z-index:60;pointer-events:none;display:none;opacity:.9}
 .snap-guide.v{top:0;bottom:0;width:2px;margin-left:-1px}
 .snap-guide.h{left:0;right:0;height:2px;margin-top:-1px}
+.studio-toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:80%;text-align:center;background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);padding:10px 16px;border-radius:12px;font:600 13px 'Inter',sans-serif;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.studio-toast.on{opacity:1}
 [data-edit]{-webkit-touch-callout:none}
 .frame.lp-move{outline:2px solid var(--ui-acc);outline-offset:1px}
 
@@ -508,6 +510,7 @@ function makeSlide(type,bg,html,f916){
   return el;
 }
 function addSlide(type){
+  if(slides.length>=20){studioToast('В карусель Instagram помещается 20 слайдов');return;}
   var s={type:type,el:makeSlide(type)};
   slides.push(s);cur=slides.length-1;render();pushHistory();
 }
@@ -1071,7 +1074,7 @@ document.getElementById('dlGrid').addEventListener('click',downloadGrid);
 document.getElementById('undoBtn').addEventListener('click',undo);
 document.getElementById('redoBtn').addEventListener('click',redo);
 
-/* ===== multi-brand (Студия) ===== */
+/* ===== multi-brand (Студия): свои зоны + своя авто-память ===== */
 var DEFAULT_BG='milk';
 var BRANDS={
  inmark:{name:'inmark',serif:"'Montserrat',system-ui,sans-serif",sans:"'Montserrat',system-ui,sans-serif",milk:'#FEF2E8',white:'#FFFFFF',graphite:'#3F353B',sage:'#E45D50',blush:'#F9C5B8',slot:'#F3E6D9',acc:'#E45D50',def:'milk',logo:'<svg class="birdlogo" viewBox="16400 16300 6900 7350" aria-hidden="true"><g fill="#E45D50"><path d="M20172 22738c-432,0 -831,-107 -1198,-320 -367,-213 -657,-502 -870,-866 -213,-364 -320,-762 -320,-1194 0,-432 107,-830 320,-1194 213,-364 503,-652 870,-865 367,-214 766,-320 1198,-320 290,0 569,50 836,149 267,100 506,240 717,422 79,63 160,78 243,47 82,-31 123,-101 123,-209l0 -145c-5,-85 13,-151 56,-196 42,-46 101,-68 175,-68l0 0c74,0 132,22 174,68 43,45 62,111 56,196l0 2627c6,85 -13,151 -56,196 -42,46 -100,68 -174,68l0 0c-74,0 -133,-22 -175,-68 -43,-45 -61,-111 -56,-196l0 -512c0,-352 -85,-675 -256,-968 -170,-293 -402,-524 -695,-695 -292,-170 -615,-256 -968,-256 -352,0 -676,86 -972,256 -296,171 -529,402 -699,695 -171,293 -256,616 -256,968 0,353 85,675 256,968 170,293 403,525 699,695 296,171 620,256 972,256 393,0 728,-94 1007,-281 62,-40 113,-60 153,-60 74,0 131,23 171,68 40,46 60,94 60,145 0,103 -46,182 -137,239 -364,233 -782,350 -1254,350z"/><path d="M19968 19966c-57,0 -105,-19 -145,-55 -40,-37 -60,-82 -60,-133 0,-57 20,-103 60,-140 40,-37 88,-56 145,-56 51,0 95,19 132,56 37,37 55,83 55,140 0,51 -18,96 -55,133 -37,36 -81,55 -132,55z"/><path d="M22543 22695c-62,40 -126,48 -192,26 -65,-23 -120,-74 -166,-154l-1723 -2900c-34,-56 -59,-96 -76,-119 -63,-85 -128,-149 -197,-192 -68,-42 -142,-64 -221,-64 -131,0 -241,50 -329,149 -88,100 -132,252 -132,457l0 733c0,182 46,350 137,503 91,154 267,231 528,231 228,0 413,-49 555,-145 62,-40 123,-56 183,-47 60,8 107,38 141,89 40,63 51,127 34,192 -17,66 -57,121 -119,167 -103,73 -214,126 -333,157 -119,32 -273,47 -461,47 -341,0 -614,-108 -818,-324 -205,-216 -307,-506 -307,-870l0 -213c0,-136 -6,-225 -17,-264l-9 -17c-6,-29 -17,-54 -34,-77 -17,-23 -40,-43 -68,-60 -23,-23 -57,-43 -103,-60 -34,-22 -65,-45 -94,-68 -28,-23 -42,-48 -42,-77 0,-17 14,-35 42,-55 29,-20 63,-38 103,-55l102 -60c63,-34 120,-88 171,-162 0,-6 1,-13 4,-22 3,-8 7,-15 13,-21 205,-392 489,-588 853,-588 216,0 386,54 511,162 126,108 242,244 350,409 0,6 2,11 4,17 3,6 7,11 13,17l1757 2934c40,57 53,118 38,183 -14,66 -46,113 -98,141z"/></g></svg>',colors:[
@@ -1116,8 +1119,12 @@ var BRANDS={
   {k:'taupe',   c:'#9A897A', name:'Таупе', dark:true}
 ]}
 };
+function studioToast(msg){var t=document.getElementById('__toast');if(!t){t=document.createElement('div');t.id='__toast';t.className='studio-toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('on');if(t.__h)clearTimeout(t.__h);t.__h=setTimeout(function(){t.classList.remove('on');},2200);}
+function seedDefault(){slides=[];var h=document.getElementById('host');if(h)h.innerHTML='';addSlide('cover');addSlide('quote');addSlide('collage');cur=0;render();}
 function applyBrand(id){
   var b=BRANDS[id]; if(!b)return;
+  if(window.__brand&&window.__brand!==id){try{saveDeck();}catch(_){}}   /* мгновенно сохраняем текущую зону перед сменой */
+  if(_saveT){clearTimeout(_saveT);_saveT=null;}
   var r=document.documentElement.style;
   r.setProperty('--serif',b.serif);r.setProperty('--sans',b.sans);
   r.setProperty('--milk',b.milk);r.setProperty('--white',b.white);r.setProperty('--graphite',b.graphite);
@@ -1125,22 +1132,18 @@ function applyBrand(id){
   r.setProperty('--ui-acc',b.acc);
   COLORS=b.colors; DEFAULT_BG=b.def;
   var li=document.getElementById('logoInner'); if(li)li.innerHTML=b.logo;
-  if(typeof slides!=='undefined'){slides.forEach(function(s){if(!COLORS.some(function(c){return c.k===s.el.dataset.bg;}))s.el.dataset.bg=DEFAULT_BG;});}
-  try{localStorage.setItem('studioBrand',id);}catch(_){}
+  DECK_KEY='deck_'+location.pathname+'_'+id;                            /* у каждой зоны свой проект */
+  window.__brand=id; try{localStorage.setItem('studioBrand',id);}catch(_){}
+  if(!loadDeck()){seedDefault();}                                       /* нет сохранённого — стартовый проект */
+  hist=[];hpos=-1;
   if(typeof buildSwatches==='function')buildSwatches();
   if(window.__buildTC)window.__buildTC();
   if(typeof slides!=='undefined')slides.forEach(function(s){if(typeof applyBg==='function')applyBg(s);});
   if(typeof render==='function')render();
+  pushHistory();
 }
 document.querySelectorAll('#brandmenu button[data-brand]').forEach(function(bn){bn.addEventListener('click',function(e){e.stopPropagation();applyBrand(bn.dataset.brand);var m=document.getElementById('brandmenu');if(m)m.classList.remove('open');});});
 
-if(!loadDeck()){
-addSlide('cover');
-addSlide('quote');
-addSlide('collage');
-cur=0;render();
-}
-hist=[];hpos=-1;pushHistory();
-(function(){var sv=null;try{sv=localStorage.getItem('studioBrand');}catch(_){}if(sv&&BRANDS[sv])applyBrand(sv);})();
-
+var _start='inmark';try{var _sv=localStorage.getItem('studioBrand');if(_sv&&BRANDS[_sv])_start=_sv;}catch(_){}
+applyBrand(_start);
 </script>
