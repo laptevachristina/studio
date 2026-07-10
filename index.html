@@ -727,7 +727,7 @@ function wireFrameEl(fr){
     pointers[e.pointerId]={x:e.clientX,y:e.clientY};
     var sc=curFitScale||1,ids=Object.keys(pointers);
     if(mode==='pinch'&&ids.length>=2){var a=pointers[ids[0]],b=pointers[ids[1]];var d=Math.hypot(a.x-b.x,a.y-b.y);if(startDist){fr.dataset.scale=Math.max(1,Math.min(5,baseScale*(d/startDist)));applyTransform(fr);}}
-    else if(mode==='resize'&&moved){fr.style.width=Math.max(50,bw+(e.clientX-sx)/sc)+'px';fr.style.height=Math.max(50,bh+(e.clientY-sy)/sc)+'px';}
+    else if(mode==='resize'&&moved){fr.style.width=Math.max(50,bw+(e.clientX-sx)/sc)+'px';fr.style.height=Math.max(50,bh+(e.clientY-sy)/sc)+'px';applyTransform(fr);}
     else if(mode==='framemove'&&moved){fr.style.left=(bl+(e.clientX-sx)/sc)+'px';fr.style.top=(bt+(e.clientY-sy)/sc)+'px';}
     else if(mode==='pan'&&moved){fr.dataset.x=(bfx+(e.clientX-sx)/sc);fr.dataset.y=(bfy+(e.clientY-sy)/sc);applyTransform(fr);}
     e.preventDefault();
