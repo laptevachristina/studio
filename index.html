@@ -424,36 +424,36 @@ var stage=document.getElementById('stage');
 function tpl(type){
   var T={
   cover:
-    '<div class="photo cover-photo" data-photo><div class="ph-label">нажми и добавь фото на весь слайд</div></div>'+
+    '<div class="photo cover-photo" data-photo><div class="ph-label">добавь своё фото на весь слайд</div></div>'+
     '<div class="cover-scrim"></div>'+
     '<div class="pad bottom on-photo">'+
-      '<div class="kicker" data-edit data-ph="НАДЗАГОЛОВОК">новинка сезона</div>'+
-      '<div class="h big" data-edit data-ph="Крупный заголовок" style="margin:8px 0 12px">трикотаж, скроенный для жизни</div>'+
-      '<div class="sub" data-edit data-ph="Подзаголовок">свой цех с 1997 года</div>'+
+      '<div class="kicker" data-edit data-ph="НАДЗАГОЛОВОК">новый проект</div>'+
+      '<div class="h big" data-edit data-ph="Крупный заголовок" style="margin:8px 0 12px">заголовок вашего слайда</div>'+
+      '<div class="sub" data-edit data-ph="Подзаголовок">короткий подзаголовок</div>'+
     '</div>',
   quote:
     '<div class="pad center">'+
-      '<div class="kicker" data-edit data-ph="надзаголовок" style="margin-bottom:18px">капсула</div>'+
-      '<div class="h big" data-edit data-ph="Главная мысль" style="margin-bottom:20px">5 изделий, которые носишь на всё</div>'+
-      '<div class="body" data-edit data-ph="Пояснение" style="max-width:420px">и сочетаются между собой в капсуле</div>'+
+      '<div class="kicker" data-edit data-ph="надзаголовок" style="margin-bottom:18px">рубрика</div>'+
+      '<div class="h big" data-edit data-ph="Главная мысль" style="margin-bottom:20px">здесь появится ваш текст</div>'+
+      '<div class="body" data-edit data-ph="Пояснение" style="max-width:420px">расскажите о главном</div>'+
     '</div>',
   collage:
     '<div class="collage-canvas" data-canvas></div>'+
     '<div class="pad" style="padding-bottom:0">'+
-      '<div class="h mid" data-edit data-ph="Заголовок">капсула из наших изделий</div>'+
+      '<div class="h mid" data-edit data-ph="Заголовок">ваш коллаж</div>'+
     '</div>',
   cta:
     '<div class="pad">'+
-      '<div class="h mid" data-edit data-ph="Заголовок" style="margin-bottom:16px">почему наш трикотаж</div>'+
-      '<div class="body" data-edit data-ph="Список" style="margin-bottom:26px">— полотно своего цеха<br>— <span class="u">не садится</span> и не скатается<br>— честная размерная сетка</div>'+
+      '<div class="h mid" data-edit data-ph="Заголовок" style="margin-bottom:16px">почему это работает</div>'+
+      '<div class="body" data-edit data-ph="Список" style="margin-bottom:26px">— первый пункт<br>— <span class="u">второй пункт</span> третий пункт<br>— четвёртый пункт</div>'+
       '<span class="pill" data-edit data-ph="Кнопка">листай дальше&nbsp;&nbsp;<span class="arw">→</span></span>'+
     '</div>',
   final:
     '<div class="collage-canvas" data-canvas></div>'+
     '<div class="pad center" style="justify-content:flex-end;padding-bottom:46px">'+
-      '<div class="h mid" data-edit data-ph="Финал" style="margin-bottom:14px">выбирай на inmark.store</div>'+
-      '<div class="sub" data-edit data-ph="Подпись" style="margin-bottom:24px">WB · Ozon · inmark.store</div>'+
-      '<span class="pill" data-edit data-ph="Кнопка">в магазин&nbsp;&nbsp;<span class="arw">→</span></span>'+
+      '<div class="h mid" data-edit data-ph="Финал" style="margin-bottom:14px">ваш призыв к действию</div>'+
+      '<div class="sub" data-edit data-ph="Подпись" style="margin-bottom:24px">ваш сайт · соцсети · контакты</div>'+
+      '<span class="pill" data-edit data-ph="Кнопка">начать&nbsp;&nbsp;<span class="arw">→</span></span>'+
     '</div>',
   splitB:
     '<div class="photo" data-photo style="position:absolute;left:0;right:0;top:0;height:60%;border-radius:0"><div class="ph-label">нажми — фото сверху</div></div>'+
@@ -1108,7 +1108,7 @@ var BRANDS={
   {k:'sage',  c:'#9BA07E', name:'Шалфей'},
   {k:'blush', c:'#E7D3CE', name:'Бледно-розовый'}
 ]},
- strk:{name:'STRK DESIGN',serif:"'Montserrat',system-ui,sans-serif",sans:"'Lora',Georgia,serif",milk:'#FBFAF4',white:'#FFFFFF',graphite:'#1C1C1C',sage:'#E5097F',blush:'#F6C9E1',slot:'#EFEDE7',acc:'#E5097F',def:'cream',logo:'<span class="wm">STRK</span>&nbsp;<b>DESIGN</b>',colors:[
+ strk:{name:'STRK',serif:"'Montserrat',system-ui,sans-serif",sans:"'Lora',Georgia,serif",milk:'#FBFAF4',white:'#FFFFFF',graphite:'#1C1C1C',sage:'#E5097F',blush:'#F6C9E1',slot:'#EFEDE7',acc:'#E5097F',def:'cream',logo:'<span class="wm">STRK</span>',colors:[
   {k:'pink',    c:'#E5097F', name:'Фуксия', dark:true},
   {k:'cream',   c:'#FBFAF4', name:'Молочный'},
   {k:'white',   c:'#FFFFFF', name:'Белый'},
@@ -1140,10 +1140,7 @@ function applyBrand(id){
   window.__brand=id; try{localStorage.setItem('studioBrand',id);}catch(_){}
   loadDeck().then(function(_ok){if(!_ok)seedDefault();               /* нет сохранённого — стартовый проект */
   hist=[];hpos=-1;
-  if(typeof buildSwatches==='function')buildSwatches();
-  if(window.__buildTC)window.__buildTC();
-  if(typeof slides!=='undefined')slides.forEach(function(s){if(typeof applyBg==='function')applyBg(s);});
-  if(typeof render==='function')render();
+  if(window.__buildTC)window.__buildTC();                            /* палитра текста; фон/свотчи/рендер уже сделал restoreState/seedDefault */
   pushHistory();});
 }
 document.querySelectorAll('#brandmenu button[data-brand]').forEach(function(bn){bn.addEventListener('click',function(e){e.stopPropagation();applyBrand(bn.dataset.brand);var m=document.getElementById('brandmenu');if(m)m.classList.remove('open');});});
