@@ -983,7 +983,23 @@ function wireSticker(st){
 }
 
 /* ---- video clips (6-10 сек ролик из галереи, живёт как элемент слайда) ---- */
+var VIDCLIP_MAX_SEC=12;
 function addVideoClip(file){
+  if(cur<0||!slides[cur])return;
+  var probe=document.createElement('video');probe.preload='metadata';
+  var probeUrl=URL.createObjectURL(file);
+  probe.onloadedmetadata=function(){
+    try{URL.revokeObjectURL(probeUrl);}catch(_){}
+    if(probe.duration&&isFinite(probe.duration)&&probe.duration>VIDCLIP_MAX_SEC+0.5){
+      alert('Видео длиннее '+VIDCLIP_MAX_SEC+' секунд ('+Math.round(probe.duration)+' сек) — выбери ролик покороче.');
+      return;
+    }
+    addVideoClipChecked(file);
+  };
+  probe.onerror=function(){try{URL.revokeObjectURL(probeUrl);}catch(_){}addVideoClipChecked(file);}; /* не смогли измерить длину — не блокируем, пусть попробует */
+  probe.src=probeUrl;
+}
+function addVideoClipChecked(file){
   if(cur<0||!slides[cur])return;
   var slideEl=slides[cur].el;
   var id='v'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
